@@ -1,147 +1,90 @@
-#include "readFiles.h"
+// ReadFiles.cpp
+#include "ReadFiles.h"
 
-using namespace std;
-
-Graph<Station*> g;
-
-vector<Station*> readNodes(string selected)
-{
-    string fname = selected + "nodes.csv";
-    vector<vector<string>> content;
-    vector<string> row;
-    string line, word;
-
-    vector<Station *> nodes;
-
-    fstream file (fname, ios::in);
-    if(file.is_open())
-    {
-        int i = 0;
-        getline(file, line);
-        while(getline(file, line))
-        {
-            row.clear();
-
-            stringstream str(line);
-            while(getline(str, word, ',')) {
-                row.push_back(word);
-            }
-            Station* stat = new Station(i, stof(row[1]), stof(row[2]));
-            // no final do codigo pra cada station fazer "delete station"
-            g.addVertex(stat);
-            nodes.push_back(stat);
-            i++;
+void ReadFiles::readCitiesData(const std::string& filename, Graph& graph) {
+    std::ifstream file(filename);
+    std::string line;
+    std::getline(file, line); // Read and discard header line
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string city, id, code, demandStr, populationStr;
+        double demand;
+        int population;
+        if (std::getline(iss, city, ',') && std::getline(iss, id, ',') &&
+            std::getline(iss, code, ',') && std::getline(iss, demandStr, ',') &&
+            std::getline(iss, populationStr, ',')) {
+            // Remove quotes from demand and population strings
+            demandStr.erase(std::remove(demandStr.begin(), demandStr.end(), '"'), demandStr.end());
+            populationStr.erase(std::remove(populationStr.begin(), populationStr.end(), '"'), populationStr.end());
+            // Convert demand and population strings to double and int respectively
+            demand = std::stod(demandStr);
+            population = std::stoi(populationStr);
+            // Create a vertex for the city and add it to the graph
+            Vertex vertex(code, VertexType::DELIVERY_SITE); // Assuming cities are delivery sites
+            graph.addVertex(vertex);
         }
     }
-    else
-        cout<<"Could not open the file\n";
-
-    return nodes;
+    file.close();
 }
 
-Station* findNode(int code, vector<Station*> nodes){
-    for (int i = 0; i < nodes.size(); i++) {
-        Station st = *nodes[i];
-        int s = nodes[i]->getCode();
-        if (s == code)
-            return nodes[i];
-    }
-    return NULL;
-}
-
-vector<Network*> findNeighbors(Station* name, vector<Network*> networks){
-    vector<Network*> neighbors;
-    for (int i = 0; i < networks.size(); i++) {
-        Network net = *networks[i];
-        int s = networks[i]->getCodeA()->getCode();
-        if (s == name->getCode())
-            neighbors.push_back(networks[i]);
-    }
-    return neighbors;
-}
-
-int getWeight(Station* dest, Station *src, vector<Network*> networks){
-    for (int i = 0; i < networks.size(); i++) {
-        Network net = *networks[i];
-        int s = networks[i]->getCodeA()->getCode();
-        int s2 = networks[i]->getCodeB()->getCode();
-        if (s == src->getCode() && s2 == dest->getCode())
-            return networks[i]->getWeight();
-    }
-    return NULL;
-}
-
-
-Network* findNetwork(Station* name, vector<Network*> networks){
-    for (int i = 0; i < networks.size(); i++) {
-        Network net = *networks[i];
-        int s = networks[i]->getCodeA()->getCode();
-        if (s == name->getCode())
-            return networks[i];
-    }
-    return NULL;
-}
-
-Network* findNetwork2(Station* name, Station* name2, vector<Network*> networks){
-    for (int i = 0; i < networks.size(); i++) {
-        Network net = *networks[i];
-        int s = networks[i]->getCodeA()->getCode();
-        int s2 = networks[i]->getCodeB()->getCode();
-        if ((s == name->getCode() && s2==name2->getCode()) || (s2 == name->getCode() && s == name2->getCode()))
-            return networks[i];
-    }
-    return NULL;
-}
-
-vector<string> split(const string &str, const char del) { // del= delimitador
-    vector<string> splitted;
-    string tmp;
-    for(char i : str) {
-        if(i!=del) {
-            tmp += i;
-        } else {
-            splitted.push_back(tmp);
-            tmp = "";
+void ReadFiles::readPipesData(const std::string& filename, Graph& graph) {
+    std::ifstream file(filename);
+    std::string line;
+    std::getline(file, line); // Read and discard header line
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string servicePointA, servicePointB, capacityStr, directionStr;
+        double capacity;
+        int direction;
+        if (std::getline(iss, servicePointA, ',') && std::getline(iss, servicePointB, ',') &&
+            std::getline(iss, capacityStr, ',') && std::getline(iss, directionStr, ',')) {
+            // Convert capacity and direction strings to double and int respectively
+            capacity = std::stod(capacityStr);
+            direction = std::stoi(directionStr);
+            // Assuming connections between service points are pipelines
+            Edge edge(&servicePointA, &servicePointB, capacity, true, EdgeType::PIPELINE);
+            graph.addEdge(edge);
         }
     }
-
-    splitted.push_back(tmp);
-
-    return splitted;
+    file.close();
 }
 
-vector<Network *> readNetworks(string selected, vector<Station*> nodes)
-{
-    string fname = selected + "edges.csv";
-    vector<vector<string>> content;
-    vector<string> row;
-    string line, word;
-
-    vector<Network *> networks;
-
-    fstream file (fname, ios::in);
-    if(file.is_open())
-    {
-        while(getline(file, line))
-        {
-            row.clear();
-
-            stringstream str(line);
-
-            while (std::getline(file, line)) {
-                if (line.empty()) continue;
-                vector<string> row = split(line, ',');
-                Station *src = findNode(stoi(row[0]), nodes);
-                Station *dest = findNode(stoi(row[1]), nodes);
-                auto *net = new Network(src, dest, stod(row[2]));
-                g.addEdge(src, dest, net->getWeight());
-                g.addEdge(dest, src, net->getWeight());
-                networks.push_back(net);
-            }
+void ReadFiles::readReservoirsData(const std::string& filename, Graph& graph) {
+    std::ifstream file(filename);
+    std::string line;
+    std::getline(file, line); // Read and discard header line
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string reservoir, municipality, id, code, maxDeliveryStr;
+        double maxDelivery;
+        if (std::getline(iss, reservoir, ',') && std::getline(iss, municipality, ',') &&
+            std::getline(iss, id, ',') && std::getline(iss, code, ',') &&
+            std::getline(iss, maxDeliveryStr, ',')) {
+            // Convert maxDelivery string to double
+            maxDelivery = std::stod(maxDeliveryStr);
+            // Create a vertex for the reservoir and add it to the graph
+            Vertex vertex(code, VertexType::RESERVOIR);
+            graph.addVertex(vertex);
         }
     }
-    else
-        cout<<"Could not open the file\n";
+    file.close();
+}
 
-    return networks;
+void ReadFiles::readStationsData(const std::string& filename, Graph& graph) {
+    std::ifstream file(filename);
+    std::string line;
+    std::getline(file, line); // Read and discard header line
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string idStr, code;
+        int id;
+        if (std::getline(iss, idStr, ',') && std::getline(iss, code, ',')) {
+            // Convert id string to int
+            id = std::stoi(idStr);
+            // Create a vertex for the station and add it to the graph
+            Vertex vertex(code, VertexType::PUMPING_STATION);
+            graph.addVertex(vertex);
+        }
+    }
+    file.close();
 }

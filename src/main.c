@@ -8,12 +8,249 @@
 
 using namespace std;
 
-void option1(vector<Station *> stations);
-void option2(vector<Station *> stations);
-void option3(vector<Station *> stations);
-void option4(vector<Station *> stations);
-void option5(vector<Station *> stations, vector <Network*> networks);
-void option6(vector<Station *> stations);
+/**
+ * @brief Compute the maximum flow from reservoirs to cities
+ *
+ * @param graph The water supply network graph
+ * @param reservoirs The reservoirs in the network
+ * @param cities The cities (delivery sites) in the network
+ * @return vector<pair<string, double>> Maximum flow to each city
+ */
+vector<pair<string, double>> computeMaxFlow(Graph& graph, const vector<string>& reservoirs, const vector<string>& cities) {
+vector<pair<string, double>> maxFlows;
+
+// Create a Ford-Fulkerson object for computing maximum flow
+FordFulkerson fordFulkerson(graph);
+
+// Iterate over each city
+for (const string& city : cities) {
+double maxFlow = 0.0;
+
+// Find the vertex corresponding to the city
+Vertex* cityVertex = graph.getVertex(city);
+
+// Iterate over each reservoir
+for (const string& reservoir : reservoirs) {
+// Find the vertex corresponding to the reservoir
+Vertex* reservoirVertex = graph.getVertex(reservoir);
+
+// Compute maximum flow from the reservoir to the city using Ford-Fulkerson algorithm
+double flow = fordFulkerson.getMaxFlow(reservoirVertex, cityVertex);
+
+// Update maxFlow if the flow from the current reservoir is greater
+maxFlow = max(maxFlow, flow);
+}
+
+// Add the pair (city, maxFlow) to the result vector
+maxFlows.emplace_back(city, maxFlow);
+}
+
+return maxFlows;
+}
+
+/**
+ * @brief Option 1: Determine the maximum amount of water that can reach each or a specific city
+ *
+ * This function reads the data from CSV files, forms the network graph, and computes the maximum flow
+ * to each city using the Ford-Fulkerson algorithm.
+ */
+void option1() {
+    // Read data from CSV files
+    ReadFiles readFiles;
+    readFiles.readReservoirs("Reservoirs_Madeira.csv");
+    readFiles.readStations("Stations_Madeira.csv");
+    readFiles.readCities("Cities_Madeira.csv");
+    readFiles.readPipes("Pipes_Madeira.csv");
+
+    // Get data from ReadFiles object
+    vector<string> reservoirs = readFiles.getReservoirs();
+    vector<string> stations = readFiles.getStations();
+    vector<string> cities = readFiles.getCities();
+    vector<vector<string>> pipesData = readFiles.getPipesData();
+
+    // Create a graph object
+    Graph graph;
+
+    // Form the network from parsed input data
+    graph.formNetwork(reservoirs, stations, cities, pipesData);
+
+    // Compute maximum flow to each city
+    vector<pair<string, double>> maxFlows = computeMaxFlow(graph, reservoirs, cities);
+
+    // Print the results
+    cout << "Maximum flow to each city:" << endl;
+    for (const auto& [city, maxFlow] : maxFlows) {
+        cout << city << ": " << maxFlow << " m3/sec" << endl;
+    }
+}
+
+
+/**
+ * @brief Option 2: View shortest path between two stations
+ *
+ * This function reads the data from CSV files, forms the network graph, and finds the shortest path
+ * between two specified stations using Dijkstra's algorithm.
+ */
+void option2() {
+    // Read data from CSV files
+    ReadFiles readFiles;
+    readFiles.readReservoirs("Reservoirs_Madeira.csv");
+    readFiles.readStations("Stations_Madeira.csv");
+    readFiles.readCities("Cities_Madeira.csv");
+    readFiles.readPipes("Pipes_Madeira.csv");
+
+    // Get data from ReadFiles object
+    vector<string> reservoirs = readFiles.getReservoirs();
+    vector<string> stations = readFiles.getStations();
+    vector<string> cities = readFiles.getCities();
+    vector<vector<string>> pipesData = readFiles.getPipesData();
+
+    // Create a graph object
+    Graph graph;
+
+    // Form the network from parsed input data
+    graph.formNetwork(reservoirs, stations, cities, pipesData);
+
+    // Create a Dijkstra object for finding shortest paths
+    Dijkstra dijkstra(graph);
+
+    // Get source and destination stations from the user
+    string source, destination;
+    cout << "Enter source station code: ";
+    cin >> source;
+    cout << "Enter destination station code: ";
+    cin >> destination;
+
+    // Find the shortest path between the source and destination stations
+    vector<Vertex*> shortestPath = dijkstra.getShortestPath(graph.getVertex(source), graph.getVertex(destination));
+
+    // Print the shortest path
+    if (!shortestPath.empty()) {
+        cout << "Shortest path from " << source << " to " << destination << ":" << endl;
+        for (Vertex* vertex : shortestPath) {
+            cout << vertex->getId() << " -> ";
+        }
+        cout << endl;
+    } else {
+        cout << "No path found between " << source << " and " << destination << endl;
+    }
+}
+
+#include <iostream>
+#include <vector>
+#include "readFiles.h"
+#include "Graph.h"
+#include "Vertex.h"
+#include "Edge.h"
+
+using namespace std;
+
+/**
+ * @brief Option 3: Check full water supply to delivery sites (cities)
+ *
+ * This function reads the data from CSV files, forms the network graph, and checks if each delivery site
+ * (city) in the network receives water from at least one reservoir or pumping station.
+ */
+void option3() {
+    // Read data from CSV files
+    ReadFiles readFiles;
+    readFiles.readReservoirs("Reservoirs_Madeira.csv");
+    readFiles.readStations("Stations_Madeira.csv");
+    readFiles.readCities("Cities_Madeira.csv");
+    readFiles.readPipes("Pipes_Madeira.csv");
+
+    // Get data from ReadFiles object
+    vector<string> reservoirs = readFiles.getReservoirs();
+    vector<string> stations = readFiles.getStations();
+    vector<string> cities = readFiles.getCities();
+    vector<vector<string>> pipesData = readFiles.getPipesData();
+
+    // Create a graph object
+    Graph graph;
+
+    // Form the network from parsed input data
+    graph.formNetwork(reservoirs, stations, cities, pipesData);
+
+    bool allSupplied = true;
+
+    // Check water supply to each city
+    for (const string& city : cities) {
+        // Find the vertex corresponding to the city
+        Vertex* cityVertex = graph.getVertex(city);
+
+        // Check if there is a path from any reservoir or pumping station to the city
+        bool supplied = false;
+        for (const string& reservoir : reservoirs) {
+            // Find the vertex corresponding to the reservoir
+            Vertex* reservoirVertex = graph.getVertex(reservoir);
+            // Check if there is a path from reservoir to city
+            if (graph.isReachable(reservoirVertex, cityVertex)) {
+                supplied = true;
+                break;
+            }
+        }
+        if (!supplied) {
+            cout << "City " << city << " does not receive water supply." << endl;
+            allSupplied = false;
+        }
+    }
+
+    if (allSupplied) {
+        cout << "All cities receive water supply." << endl;
+    }
+}
+
+/**
+ * @brief Option 4: Minimize the differences of flow to capacity on each pipe across the entire network
+ *
+ * This function reads the data from CSV files, forms the network graph, computes the flow through each pipe
+ * using the Ford-Fulkerson algorithm, and adjusts the flow to minimize differences with capacities.
+ */
+void option4() {
+    // Read data from CSV files
+    ReadFiles readFiles;
+    readFiles.readReservoirs("Reservoirs_Madeira.csv");
+    readFiles.readStations("Stations_Madeira.csv");
+    readFiles.readCities("Cities_Madeira.csv");
+    readFiles.readPipes("Pipes_Madeira.csv");
+
+    // Get data from ReadFiles object
+    vector<string> reservoirs = readFiles.getReservoirs();
+    vector<string> stations = readFiles.getStations();
+    vector<string> cities = readFiles.getCities();
+    vector<vector<string>> pipesData = readFiles.getPipesData();
+
+    // Create a graph object
+    Graph graph;
+
+    // Form the network from parsed input data
+    graph.formNetwork(reservoirs, stations, cities, pipesData);
+
+    // Create a Ford-Fulkerson object for computing maximum flow
+    FordFulkerson fordFulkerson(graph);
+
+    // Iterate over each edge (pipe) in the graph
+    for (Edge* edge : graph.getEdges()) {
+        // Get the capacity of the current edge
+        double capacity = edge->getCapacity();
+
+        // Compute the maximum flow through the current edge using Ford-Fulkerson algorithm
+        double flow = fordFulkerson.getMaxFlow(edge->getSource(), edge->getDestination());
+
+        // Adjust the flow to minimize differences with capacity
+        double adjustedFlow = min(flow, capacity); // Adjusted flow cannot exceed capacity
+
+        // Update the flow on the current edge
+        edge->setFlow(adjustedFlow);
+    }
+
+    // Print the adjusted flows on each pipe
+    cout << "Adjusted flows on each pipe:" << endl;
+    for (Edge* edge : graph.getEdges()) {
+        cout << "From " << edge->getSource()->getId() << " to " << edge->getDestination()->getId()
+             << ": Flow = " << edge->getFlow() << ", Capacity = " << edge->getCapacity() << endl;
+    }
+}
 
 /**
  * Displays the main menu on the console
@@ -108,148 +345,4 @@ int main(int argc, char const *argv[])
                 std::cout << "Number not found" << std::endl;
         }
     }
-}
-
-/**
- * @brief Select option 1
- *
- * Allows the user to view the maximum number of trains that can simultaneously travel between two specific stations.
- * Asks for starting and destination stations and prints the result to the console.
- *
- * @param stations Vector of pointers to Station objects
- */
-void option1(vector<Station *> stations) {
-    cout << "Selected first option" << endl;
-    cout << "View max number of trains that can simultaneously travel between two specific stations" << endl;
-    cout << "Input starting station" << endl;
-    cout << "->";
-    string start;
-    cin.ignore();
-    getline(std::cin, start);
-    cout << "Input destination station: " << endl;
-    string end;
-    getline(std::cin, end);
-    cout << "Starting station: " << start << std::endl;
-    cout << "Destination station: " << end << std::endl;
-    Station *src = findStation(start, stations);
-    Station *dest = findStation(end, stations);
-    maxNumberTrains(&g, src, dest);
-}
-
-/**
- * @brief Select option 2
- *
- * Allows the user to view the shortest path between two stations.
- * Asks for starting and destination stations and prints the result to the console.
- *
- * @param stations Vector of pointers to Station objects
- */
-void option2(vector<Station *> stations) {
-    cout << "Selected second option" << endl;
-    cout << "View shortest path between two stations" << endl;
-    cout << "Input starting station" << endl;
-    cout << "->";
-    string start;
-    cin.ignore();
-    getline(std::cin, start);
-    cout << "Input destination station: " << endl;
-    string end;
-    getline(std::cin, end);
-    cout << "Starting station: " << start << std::endl;
-    cout << "Destination station: " << end << std::endl;
-    Station *src = findStation(start, stations);
-    Station *dest = findStation(end, stations);
-    shortestPath(&g, src, dest);
-}
-
-/**
- * @brief Select option 3
- *
- * Allows the user to determine which pairs of stations require the most amount of trains.
- * Prints the result to the console.
- *
- * @param stations Vector of pointers to Station objects
- */
-void option3(vector<Station *> stations) {
-    cout << "Selected fourth option" << endl;
-    cout << "Determine which pairs of stations require most amount of trains" << endl;
-    mostAmount(&g, stations);
-}
-
-/**
- * @brief Select option 4
- *
- * Allows the user to report the max number of trains that can simultaneously arrive at a given station
- * Asks for destination station and prints the result to the console.
- *
- * @param stations Vector of pointers to Station objects
- */
-void option4(vector<Station *> stations) {
-    cout << "Selected fourth option" << endl;
-    cout << "Report the maximum number of trains that can simultaneously arrive at a given station,\n"
-            "taking into consideration the entire railway grid." << endl;
-    cout << "Input destination station: " << endl;
-    string end;
-    cin.ignore();
-    getline(std::cin, end);
-    Station *dest = findStation(end, stations);
-    maxNumberTrainsAllStations(&g, dest, stations);
-}
-
-/**
- * @brief Select option 5
- *
- * Allows the user to alculate the max number of trains that can simultaneously travel
- * between two stations at minimum cost to the company.
- *
- * @param stations Vector of pointers to Station objects
- * @param networks Vector of pointers to Network objects
- */
-void option5(vector<Station *> stations, vector <Network*> networks) {
-    cout << "Selected sixth option" << endl;
-    cout << "Calculate the max amount of trains that can simultaneously travel between two specific "
-            "stations with minimum cost for the company. Note that your system should also take any valid "
-            "source and destination stations as input;" << endl;
-    cout << "Input starting station" << endl;
-    cout << "->";
-    string start;
-    cin.ignore();
-    getline(std::cin, start);
-    cout << "Input destination station: " << endl;
-    string end;
-    getline(std::cin, end);
-    cout << "Starting station: " << start << std::endl;
-    cout << "Destination station: " << end << std::endl;
-    Station *src = findStation(start, stations);
-    Station *dest = findStation(end, stations);
-    calculatePrice(src, dest, &g, &networks);
-}
-/**
- * @brief Select option 6
- *
- * Allows the user to calculate the max number of trains that can simultaneously travel
- * between two stations in a network of reduced connectivity.
- *
- * @param stations Vector of pointers to Station objects
- */
-void option6(vector<Station *> stations) {
-    cout << "Selected sixth option" << endl;
-    cout << "Calculate the max number of trains that can simultaneously travel between two stations at reduced connectivity" << endl;
-    cout << "Input starting station" << endl;
-    cout << "->";
-    string start;
-    cin.ignore();
-    getline(std::cin, start);
-    cout << "Input destination station: " << endl;
-    string end;
-    getline(std::cin, end);
-    cout << "Starting station: " << start << std::endl;
-    cout << "Destination station: " << end << std::endl;
-    Station *src = findStation(start, stations);
-    Station *dest = findStation(end, stations);
-
-    Graph<Station*> soup = subgraph(stations, src, dest);
-    cout << "Subgraph created successfully" << endl;
-    maxNumberTrains(&soup, src, dest);
-
 }
