@@ -1,3 +1,0 @@
-David Magalhães
-
-Viktoriia Kutsel
