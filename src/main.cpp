@@ -3,7 +3,6 @@
 #include <vector>
 #include "istream"
 #include "readFiles.h"
-#include "utils.cpp"
 
 
 using namespace std;
@@ -85,12 +84,7 @@ void option1() {
 }
 
 
-/**
- * @brief Option 2: View shortest path between two stations
- *
- * This function reads the data from CSV files, forms the network graph, and finds the shortest path
- * between two specified stations using Dijkstra's algorithm.
- */
+
 void option2() {
     // Read data from CSV files
     ReadFiles readFiles;
@@ -300,13 +294,7 @@ void check() {
  */
 int main(int argc, char const *argv[])
 {
-    //Create two graphs - station and network
-    //Read all stations
-    //Read all networks
     bool loop = true;
-
-    //vector <Station*> stations = readStations();
-    //vector <Network*> networks = readNetworks(stations);
     while (loop)
     {
         menu();
@@ -316,24 +304,24 @@ int main(int argc, char const *argv[])
         {
             case 1:
             {
-                //option1(stations);
+                option1();
                 check();
                 break;
             }
             case 2:
             {
-                //option2(stations);
+                option2();
                 check();
                 break;
             }
             case 3:
             {
-                //option3(stations);
+                option3();
                 check();
                 break;
             }
             case 4: {
-                //option4(stations);
+                option4();
                 check();
                 break;
             }

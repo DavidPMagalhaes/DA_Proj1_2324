@@ -1,8 +1,18 @@
+/**
+ * @file ReadFiles.cpp
+ * @brief Implementation of the ReadFiles class
+ */
+
 #include "ReadFiles.h"
 #include <fstream>
 #include <sstream>
 #include <algorithm>
 
+/**
+ * @brief Reads cities data from a file and populates the graph.
+ * @param filename Name of the file containing cities data
+ * @param graph Reference to the graph to populate
+ */
 void ReadFiles::readCitiesData(const std::string& filename, Graph& graph) {
     std::ifstream file(filename);
     std::string line;
@@ -29,6 +39,11 @@ void ReadFiles::readCitiesData(const std::string& filename, Graph& graph) {
     file.close();
 }
 
+/**
+ * @brief Reads pipes data from a file and populates the graph.
+ * @param filename Name of the file containing pipes data
+ * @param graph Reference to the graph to populate
+ */
 void ReadFiles::readPipesData(const std::string& filename, Graph& graph) {
     std::ifstream file(filename);
     std::string line;
@@ -51,6 +66,11 @@ void ReadFiles::readPipesData(const std::string& filename, Graph& graph) {
     file.close();
 }
 
+/**
+ * @brief Reads reservoirs data from a file and populates the graph.
+ * @param filename Name of the file containing reservoirs data
+ * @param graph Reference to the graph to populate
+ */
 void ReadFiles::readReservoirsData(const std::string& filename, Graph& graph) {
     std::ifstream file(filename);
     std::string line;
@@ -72,6 +92,11 @@ void ReadFiles::readReservoirsData(const std::string& filename, Graph& graph) {
     file.close();
 }
 
+/**
+ * @brief Reads stations data from a file and populates the graph.
+ * @param filename Name of the file containing stations data
+ * @param graph Reference to the graph to populate
+ */
 void ReadFiles::readStationsData(const std::string& filename, Graph& graph) {
     std::ifstream file(filename);
     std::string line;

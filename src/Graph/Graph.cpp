@@ -1,16 +1,33 @@
-// Graph.cpp
+/**
+ * @file Graph.cpp
+ * @brief Implementation of the Graph class
+ */
 #include "Graph.h"
-
+/**
+ * @brief Constructs a Graph object.
+ */
 Graph::Graph() {}
-
+/**
+ * @brief Adds a vertex to the graph.
+ * @param vertex Reference to the vertex to be added
+ */
 void Graph::addVertex(const Vertex& vertex) {
     vertices.push_back(vertex);
 }
-
+/**
+ * @brief Adds an edge to the graph.
+ * @param edge Reference to the edge to be added
+ */
 void Graph::addEdge(const Edge& edge) {
     edges.push_back(edge);
 }
-
+/**
+ * @brief Forms a network from the given data.
+ * @param reservoirsData Data for reservoirs
+ * @param stationsData Data for pumping stations
+ * @param citiesData Data for delivery sites (cities)
+ * @param pipesData Data for pipelines
+ */
 void Graph::formNetwork(const std::vector<std::vector<std::string>>& reservoirsData,
                         const std::vector<std::vector<std::string>>& stationsData,
                         const std::vector<std::vector<std::string>>& citiesData,
@@ -55,7 +72,10 @@ void Graph::formNetwork(const std::vector<std::vector<std::string>>& reservoirsD
         }
     }
 }
-
+/**
+ * @brief Checks if the graph is connected.
+ * @return True if the graph is connected, false otherwise
+ */
 bool Graph::isConnected() {
     if (vertices.empty()) {
         return false;
@@ -66,7 +86,9 @@ bool Graph::isConnected() {
 
     return visited.size() == vertices.size();
 }
-
+/**
+ * @brief Connects disconnected components of the graph.
+ */
 void Graph::connectDisconnectedComponents() {
     if (isConnected()) {
         return; // Graph is already connected
@@ -85,7 +107,11 @@ void Graph::connectDisconnectedComponents() {
         }
     }
 }
-
+/**
+ * @brief Breadth-first search starting from a given vertex.
+ * @param start Pointer to the starting vertex
+ * @param visited Set of visited vertex IDs
+ */
 void Graph::bfs(Vertex* start, std::unordered_set<std::string>& visited) {
     std::queue<Vertex*> queue;
     queue.push(start);
