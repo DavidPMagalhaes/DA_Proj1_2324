@@ -52,9 +52,41 @@ void ReadFiles::readPipesData(const std::string& filename, Graph& graph) {
 }
 
 void ReadFiles::readReservoirsData(const std::string& filename, Graph& graph) {
-    // Implementation of readReservoirsData
+    std::ifstream file(filename);
+    std::string line;
+    std::getline(file, line); // Read and discard header line
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string reservoir, municipality, id, code, maxDeliveryStr;
+        double maxDelivery;
+        if (std::getline(iss, reservoir, ',') && std::getline(iss, municipality, ',') &&
+            std::getline(iss, id, ',') && std::getline(iss, code, ',') &&
+            std::getline(iss, maxDeliveryStr, ',')) {
+            // Convert maxDelivery string to double
+            maxDelivery = std::stod(maxDeliveryStr);
+            // Create a vertex for the reservoir and add it to the graph
+            Vertex vertex(code, VertexType::RESERVOIR);
+            graph.addVertex(vertex);
+        }
+    }
+    file.close();
 }
 
 void ReadFiles::readStationsData(const std::string& filename, Graph& graph) {
-    // Implementation of readStationsData
+    std::ifstream file(filename);
+    std::string line;
+    std::getline(file, line); // Read and discard header line
+    while (std::getline(file, line)) {
+        std::istringstream iss(line);
+        std::string idStr, code;
+        int id;
+        if (std::getline(iss, idStr, ',') && std::getline(iss, code, ',')) {
+            // Convert id string to int
+            id = std::stoi(idStr);
+            // Create a vertex for the station and add it to the graph
+            Vertex vertex(code);
+            graph.addVertex(vertex);
+        }
+    }
+    file.close();
 }
