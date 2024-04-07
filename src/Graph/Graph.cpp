@@ -72,26 +72,19 @@ void Graph::connectDisconnectedComponents() {
         return; // Graph is already connected
     }
 
-    // Create a set to keep track of visited vertices
     std::unordered_set<std::string> visited;
-
-    // Traverse all vertices
     for (Vertex& vertex : vertices) {
         if (visited.find(vertex.getId()) == visited.end()) {
-            // If the vertex hasn't been visited yet, perform BFS traversal from it
             bfs(&vertex, visited);
         }
     }
 
-    // After traversal, if the graph is still not connected, connect disconnected components
     if (!isConnected()) {
-        // Connect the first vertex of each disconnected component to the last vertex of the previous component
         for (size_t i = 1; i < vertices.size(); ++i) {
             addEdge(Edge(&vertices[i - 1], &vertices[i], 0, true, EdgeType::PIPELINE));
         }
     }
 }
-
 
 void Graph::bfs(Vertex* start, std::unordered_set<std::string>& visited) {
     std::queue<Vertex*> queue;
@@ -102,7 +95,6 @@ void Graph::bfs(Vertex* start, std::unordered_set<std::string>& visited) {
         Vertex* current = queue.front();
         queue.pop();
 
-        // Traverse all adjacent vertices
         for (const Edge& edge : edges) {
             if (edge.getSource() == current) {
                 Vertex* neighbor = edge.getTarget();

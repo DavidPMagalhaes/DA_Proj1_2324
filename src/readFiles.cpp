@@ -1,5 +1,7 @@
-// ReadFiles.cpp
 #include "ReadFiles.h"
+#include <fstream>
+#include <sstream>
+#include <algorithm>
 
 void ReadFiles::readCitiesData(const std::string& filename, Graph& graph) {
     std::ifstream file(filename);
@@ -14,8 +16,8 @@ void ReadFiles::readCitiesData(const std::string& filename, Graph& graph) {
             std::getline(iss, code, ',') && std::getline(iss, demandStr, ',') &&
             std::getline(iss, populationStr, ',')) {
             // Remove quotes from demand and population strings
-            demandStr.erase(std::remove(demandStr.begin(), demandStr.end(), '"'), demandStr.end());
-            populationStr.erase(std::remove(populationStr.begin(), populationStr.end(), '"'), populationStr.end());
+            demandStr.erase(std::remove_if(demandStr.begin(), demandStr.end(), [](char c) { return c == '"'; }), demandStr.end());
+            populationStr.erase(std::remove_if(populationStr.begin(), populationStr.end(), [](char c) { return c == '"'; }), populationStr.end());
             // Convert demand and population strings to double and int respectively
             demand = std::stod(demandStr);
             population = std::stoi(populationStr);
@@ -82,7 +84,7 @@ void ReadFiles::readStationsData(const std::string& filename, Graph& graph) {
             // Convert id string to int
             id = std::stoi(idStr);
             // Create a vertex for the station and add it to the graph
-            Vertex vertex(code, VertexType::PUMPING_STATION);
+            Vertex vertex(code);
             graph.addVertex(vertex);
         }
     }
