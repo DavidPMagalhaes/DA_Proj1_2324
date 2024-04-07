@@ -1,0 +1,3 @@
+C:/Users/vikto/OneDrive/Desktop/DA_Proj1_2324-main (3)/cmake-build-debug/CMakeFiles/DA_Proj1_2324_main__3_.dir
+C:/Users/vikto/OneDrive/Desktop/DA_Proj1_2324-main (3)/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/vikto/OneDrive/Desktop/DA_Proj1_2324-main (3)/cmake-build-debug/CMakeFiles/rebuild_cache.dir
